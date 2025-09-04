@@ -72,26 +72,42 @@ npm run dev
 ```
 The frontend will run on http://localhost:5173
 
-## Docker
+## Docker Deployment
 
-### Using Docker Compose (Recommended)
+### Setup
 
+1. **Download and edit docker-compose file:**
 ```bash
-docker-compose up --build
+curl -O https://raw.githubusercontent.com/willnekker/wills-notes/main/docker-compose.prod.yml
 ```
 
-This will build and run both frontend and backend services.
+2. **Edit the docker-compose.prod.yml file and update these environment variables:**
+- `JWT_SECRET` - Change to a secure random string
+- `WEATHER_API_KEY` - Add your weather API key
+- `OPENROUTER_API_KEY` - Add your OpenRouter API key
 
-### Building Individual Images
-
-Backend:
+3. **Run the application:**
 ```bash
-docker build -t wills-notes-backend ./backend
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-Frontend:
+The app will be available at **http://localhost**
+
+### Docker Commands
+
 ```bash
-docker build -t wills-notes-frontend ./frontend
+# View logs
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Stop application
+docker-compose -f docker-compose.prod.yml down
+
+# Update to latest version
+docker-compose -f docker-compose.prod.yml pull
+docker-compose -f docker-compose.prod.yml up -d
+
+# Backup data (from Docker volumes)
+docker run --rm -v wills-notes-data:/data -v wills-notes-uploads:/uploads -v $(pwd):/backup alpine tar -czf /backup/wills-notes-backup-$(date +%Y%m%d).tar.gz -C / data uploads
 ```
 
 ## API Endpoints
