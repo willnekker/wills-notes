@@ -1,0 +1,13 @@
+
+> npx
+> create-vite frontend --template react
+
+│
+◇  Scaffolding project in /home/willemnekker/wills-notes/frontend...
+│
+└  Done. Now run:
+
+  cd frontend
+  npm install
+  npm run dev
+
