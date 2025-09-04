@@ -6,6 +6,12 @@ const Dashboard = ({ user, onLogout }) => {
   const [notebooks, setNotebooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [signupEnabled, setSignupEnabled] = useState(true);
+  const [showCreateNote, setShowCreateNote] = useState(false);
+  const [showCreateNotebook, setShowCreateNotebook] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [newNote, setNewNote] = useState({ title: '', content: '' });
+  const [newNotebook, setNewNotebook] = useState({ name: '' });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -58,6 +64,50 @@ const Dashboard = ({ user, onLogout }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     onLogout();
+  };
+
+  const createNote = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/notes', newNote, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotes([response.data, ...notes]);
+      setNewNote({ title: '', content: '' });
+      setShowCreateNote(false);
+    } catch (error) {
+      console.error('Error creating note:', error);
+    }
+  };
+
+  const createNotebook = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/notebooks', newNotebook, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotebooks([response.data, ...notebooks]);
+      setNewNotebook({ name: '' });
+      setShowCreateNotebook(false);
+    } catch (error) {
+      console.error('Error creating notebook:', error);
+    }
+  };
+
+  const searchNotes = async () => {
+    if (!searchQuery.trim()) {
+      fetchData();
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/notes/search?q=${encodeURIComponent(searchQuery)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotes(response.data || []);
+    } catch (error) {
+      console.error('Error searching notes:', error);
+    }
   };
 
   if (loading) {
@@ -157,13 +207,22 @@ const Dashboard = ({ user, onLogout }) => {
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium">
+                <button 
+                  onClick={() => setShowCreateNote(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors"
+                >
                   Create New Note
                 </button>
-                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium">
+                <button 
+                  onClick={() => setShowCreateNotebook(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors"
+                >
                   New Notebook
                 </button>
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium">
+                <button 
+                  onClick={() => setShowSearch(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors"
+                >
                   Search Notes
                 </button>
               </div>
@@ -188,6 +247,110 @@ const Dashboard = ({ user, onLogout }) => {
               >
                 Open Task Manager
               </a>
+            </div>
+          </div>
+        )}
+
+        {/* Create Note Modal */}
+        {showCreateNote && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Note</h3>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Note title"
+                  value={newNote.title}
+                  onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <textarea
+                  placeholder="Note content"
+                  value={newNote.content}
+                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                  rows="4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowCreateNote(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createNote}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                >
+                  Create Note
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Notebook Modal */}
+        {showCreateNotebook && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Notebook</h3>
+              <input
+                type="text"
+                placeholder="Notebook name"
+                value={newNotebook.name}
+                onChange={(e) => setNewNotebook({ ...newNotebook, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowCreateNotebook(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createNotebook}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                >
+                  Create Notebook
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Search Modal */}
+        {showSearch && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Search Notes</h3>
+              <input
+                type="text"
+                placeholder="Search for notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && searchNotes()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowSearch(false);
+                    setSearchQuery('');
+                    fetchData();
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={searchNotes}
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+                >
+                  Search
+                </button>
+              </div>
             </div>
           </div>
         )}
