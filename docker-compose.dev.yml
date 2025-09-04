@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/data:/app/data
+      - ./backend/uploads:/app/uploads
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET=development-secret-key
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - wills-notes
+
+  frontend:
+    build:
+      context: ./frontend
+      target: builder
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host 0.0.0.0
+    restart: unless-stopped
+    networks:
+      - wills-notes
+
+networks:
+  wills-notes:
+    driver: bridge
