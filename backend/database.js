@@ -17,6 +17,12 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
     console.log('🔧 Creating user table...');
     db.run(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT DEFAULT 'user', location TEXT)`);
     
+    console.log('🔧 Creating settings table...');
+    db.run(`CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, key TEXT UNIQUE NOT NULL, value TEXT NOT NULL)`);
+    
+    console.log('🔧 Initializing default settings...');
+    db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('signup_enabled', 'true')`);
+    
     console.log('🔧 Creating core content tables...');
     db.run(`CREATE TABLE IF NOT EXISTS notebooks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, userId INTEGER, FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE)`);
     db.run(`CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, content TEXT, createdAt TEXT, modifiedAt TEXT, userId INTEGER, notebookId INTEGER, FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (notebookId) REFERENCES notebooks(id) ON DELETE SET NULL)`);
