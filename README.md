@@ -2,6 +2,34 @@
 
 A full-stack notes application with React frontend and Node.js backend.
 
+## 🚀 Quick Start - Docker (Recommended)
+
+**Minimal setup (no API keys needed):**
+
+```bash
+docker run -d -p 80:80 \
+  -e JWT_SECRET=your-secure-jwt-secret-here \
+  -v wills-notes-data:/app/data \
+  -v wills-notes-uploads:/app/uploads \
+  --name wills-notes \
+  ghcr.io/willnekker/wills-notes:latest
+```
+
+**With optional API keys:**
+
+```bash
+docker run -d -p 80:80 \
+  -e JWT_SECRET=your-secure-jwt-secret-here \
+  -e WEATHER_API_KEY=your_weather_api_key_here \
+  -e OPENROUTER_API_KEY=your_openrouter_api_key_here \
+  -v wills-notes-data:/app/data \
+  -v wills-notes-uploads:/app/uploads \
+  --name wills-notes \
+  ghcr.io/willnekker/wills-notes:latest
+```
+
+**App runs at:** http://localhost
+
 ## Features
 
 - User authentication and authorization
@@ -13,82 +41,22 @@ A full-stack notes application with React frontend and Node.js backend.
 
 ## Tech Stack
 
-**Frontend:**
-- React 19
-- Vite
-- React Router
-- Tailwind CSS
-- Lucide React (icons)
-- React Markdown
+**Frontend:** React 19, Vite, React Router, Tailwind CSS, Lucide React, React Markdown
+**Backend:** Node.js, Express 5, SQLite3, JWT Authentication, bcrypt, Multer
 
-**Backend:**
-- Node.js
-- Express 5
-- SQLite3
-- JWT Authentication
-- bcrypt for password hashing
-- Multer for file uploads
+## 🐳 Docker Management
 
-## Getting Started
+### Run Commands
 
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm
-
-### Installation
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/willnekker/wills-notes.git
-cd wills-notes
-```
-
-2. Install backend dependencies:
-```bash
-cd backend
-npm install
-```
-
-3. Install frontend dependencies:
-```bash
-cd ../frontend
-npm install
-```
-
-### Running the Application
-
-1. Start the backend server:
-```bash
-cd backend
-npm start
-```
-The backend will run on http://localhost:3000
-
-2. In a new terminal, start the frontend development server:
-```bash
-cd frontend
-npm run dev
-```
-The frontend will run on http://localhost:5173
-
-## Docker Deployment
-
-### Setup
-
-1. **Download and edit docker-compose file:**
-```bash
-curl -O https://raw.githubusercontent.com/willnekker/wills-notes/main/docker-compose.prod.yml
-```
-
-2. **Edit the docker-compose.prod.yml file and update these environment variables:**
-- `JWT_SECRET` - Change to a secure random string
-- `WEATHER_API_KEY` - Add your weather API key
-- `OPENROUTER_API_KEY` - Add your OpenRouter API key
-
-3. **Run the application:**
-```bash
-docker-compose -f docker-compose.prod.yml up -d
+docker run -d -p 80:80 \
+  -e JWT_SECRET=your-secure-jwt-secret-here \
+  -e WEATHER_API_KEY=your_weather_api_key_here \
+  -e OPENROUTER_API_KEY=your_openrouter_api_key_here \
+  -v wills-notes-data:/app/data \
+  -v wills-notes-uploads:/app/uploads \
+  --name wills-notes \
+  ghcr.io/willnekker/wills-notes:latest
 ```
 
 The app will be available at **http://localhost**
@@ -97,17 +65,57 @@ The app will be available at **http://localhost**
 
 ```bash
 # View logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker logs -f wills-notes
 
 # Stop application
-docker-compose -f docker-compose.prod.yml down
+docker stop wills-notes
+
+# Remove container
+docker rm wills-notes
 
 # Update to latest version
-docker-compose -f docker-compose.prod.yml pull
-docker-compose -f docker-compose.prod.yml up -d
+docker pull ghcr.io/willnekker/wills-notes:latest
+docker stop wills-notes && docker rm wills-notes
+# Then run the docker run command again
 
-# Backup data (from Docker volumes)
+# Backup data
 docker run --rm -v wills-notes-data:/data -v wills-notes-uploads:/uploads -v $(pwd):/backup alpine tar -czf /backup/wills-notes-backup-$(date +%Y%m%d).tar.gz -C / data uploads
+```
+
+### Docker Compose Alternative
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+services:
+  wills-notes:
+    image: ghcr.io/willnekker/wills-notes:latest
+    ports:
+      - "80:80"
+    volumes:
+      - wills-notes-data:/app/data
+      - wills-notes-uploads:/app/uploads
+    environment:
+      - JWT_SECRET=your-secure-jwt-secret-here
+      - PORT=3000
+      - NODE_ENV=production
+      - DB_SOURCE=data/notes.db
+      - UPLOAD_DIR=./uploads
+      - MAX_FILE_SIZE=10485760
+      - WEATHER_API_KEY=your_weather_api_key_here
+      - OPENROUTER_API_KEY=your_openrouter_api_key_here
+    restart: unless-stopped
+
+volumes:
+  wills-notes-data:
+  wills-notes-uploads:
+```
+
+Then run:
+```bash
+docker-compose up -d
 ```
 
 ## API Endpoints
